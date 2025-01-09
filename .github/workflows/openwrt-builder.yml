@@ -100,7 +100,7 @@ jobs:
         PACKAGE_SOC: s905d
         GZIP_IMGS: .xz
         SCRIPT_DIY_PATH: N1/mk_s905d_n1.sh
-        WHOAMI: innmonkey
+        WHOAMI: sck03
         OPENWRT_VER: $(date +"%Y.%m.%d")
         SW_FLOWOFFLOAD: 0
         SFE_FLOW: 0
@@ -122,7 +122,7 @@ jobs:
 
         ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
 
-        🌐 管理地址: 192.168.0.2
+        🌐 管理地址: 192.168.6.6
 
         👤 用户名: root
 
