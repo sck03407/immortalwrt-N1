@@ -6,7 +6,7 @@
 - <del>添加 Mosdns </del>
 - <del>添加 Pushbot </del>
 - 添加 OpenClash
-- 添加 易有云
+- <del>添加 易有云 </del>
 - <del>添加 阿里DDNS </del>
 - <del> 添加 网络唤醒 <del>
 - 添加 lucky大吉
