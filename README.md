@@ -3,7 +3,7 @@
 固件包含默认皮肤、完整 IPv6 支持，以及下列 luci-app：<br>
 - 添加 amlogic
 - 添加 dockerman
-- <del>添加 Mosdns </del>
+- 添加 Mosdns
 - <del>添加 Pushbot </del>
 - 添加 OpenClash
 - <del>添加 阿里DDNS </del>
