@@ -175,7 +175,7 @@ adjust_openssh_config
 adjust_openclash_config
 use_xrayplug_replace_v2rayplug
 create_fstab_config
-#adjust_mosdns_config
+adjust_mosdns_config
 patch_admin_status_index_html
 adjust_kernel_env
 copy_uboot_to_fs
