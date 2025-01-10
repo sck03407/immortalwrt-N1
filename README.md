@@ -6,11 +6,10 @@
 - <del>添加 Mosdns </del>
 - <del>添加 Pushbot </del>
 - 添加 OpenClash
-- <del>添加 易有云 </del>
 - <del>添加 阿里DDNS </del>
 - <del> 添加 网络唤醒 <del>
 - 添加 lucky大吉
-- 添加 微信推送
+- 添加 adguardhome
 ***
 打包后消息推送
     - name: 消息推送
