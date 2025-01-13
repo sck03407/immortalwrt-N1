@@ -7,6 +7,9 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'
+  repository_dispatch:
+    types:
+      - N1-ImmortalWrt-18.06-K5.4      
   schedule:
     - cron: "0 0 1 * *"
 
