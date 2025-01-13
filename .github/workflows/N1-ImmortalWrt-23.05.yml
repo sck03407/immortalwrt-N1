@@ -33,6 +33,17 @@ jobs:
         echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)"
         df -Th
         
+    - name: 优化磁盘空间
+      uses: "hugoalh/disk-space-optimizer-ghaction@v0.8.1"
+      with:
+        operate_sudo: "True"
+        docker_prune: "True"
+        docker_clean: "True"
+        apt_prune: "True"
+        apt_clean: "True"
+        npm_prune: "True"
+        os_swap: "True"
+
     - name: 最大化构建空间
       uses: easimon/maximize-build-space@master
       with: 
@@ -48,17 +59,6 @@ jobs:
         
     - name: 检出代码
       uses: actions/checkout@main
-      
-    - name: 清理磁盘空间
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: false
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
         
     - name: 初始化编译环境
       env:
