@@ -2,9 +2,16 @@ name: Build ImmortalWrt23.05 for N1
 
 on:
   workflow_dispatch:
+   inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
   repository_dispatch:
     types:
       - N1-ImmortalWrt23.05     
+  schedule:
+    - cron: "0 0 1 * *"    
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
