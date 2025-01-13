@@ -12,29 +12,29 @@ jobs:
     - name: ImmortalWrt 18.06 K5.4
       uses: peter-evans/repository-dispatch@v2
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.REPO_TOKEN }}
         event-type: N1-ImmortalWrt-18.06-K5.4
 
     - name: ImmortalWrt 23.05
       uses: peter-evans/repository-dispatch@v2
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.REPO_TOKEN }}
         event-type: N1-ImmortalWrt-23.05
 
     - name: LEDE
       uses: peter-evans/repository-dispatch@v2
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.REPO_TOKEN }}
         event-type: N1-LEDE
 
     - name: OpenWrt 23.05
       uses: peter-evans/repository-dispatch@v2
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.REPO_TOKEN }}
         event-type: N1-OpenWrt-23.05
 
     - name: IStoreOS
       uses: peter-evans/repository-dispatch@v2
       with:
-        token: ${{ secrets.GH_TOKEN }}
+        token: ${{ secrets.REPO_TOKEN }}
         event-type: N1-iStoreOS
