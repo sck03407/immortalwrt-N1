@@ -9,7 +9,7 @@ on:
         default: 'false'
   repository_dispatch:
     types:
-      - N1-ImmortalWrt-18.06-K5.4      
+      - N1-ImmortalWrt23.05     
   schedule:
     - cron: "0 0 1 * *"
 
