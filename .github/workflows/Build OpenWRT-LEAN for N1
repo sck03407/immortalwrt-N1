@@ -10,6 +10,7 @@ env:
   DIY_SH: N1-LEDE/diy.sh
   FILES: N1-LEDE/files
   TZ: Asia/Shanghai
+  GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
 
 jobs:
   build:
@@ -166,7 +167,7 @@ jobs:
         tag: OpenWrt_N1_${{ env.PACKAGED_OUTPUTDATE }}
         artifacts: /opt/openwrt_packit/output/*
         allowUpdates: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ env.GITHUB_TOKEN }}
         body: |
           基于lean openwrt构建
           首次使用建议全新刷写
@@ -177,8 +178,7 @@ jobs:
           
     - name: 删除自动发布的旧固件
       uses: dev-drprasad/delete-older-releases@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
         keep_latest: 5
         delete_tags : true
