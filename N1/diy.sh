@@ -1,4 +1,13 @@
 #!/bin/bash
+# Git稀疏克隆，只克隆指定目录到本地
+function git_sparse_clone() {
+  branch="$1" repourl="$2" && shift 2
+  git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
+  repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
+  cd $repodir && git sparse-checkout set $@
+  mv -f $@ ../package
+  cd .. && rm -rf $repodir
+}
 
 # Remove packages
 #rm -rf feeds/packages/net/v2ray-geodata
@@ -8,6 +17,8 @@
 git clone --depth=1 https://github.com/ophub/luci-app-amlogic package/amlogic
 #git clone  https://github.com/linkease/luci-app-linkease package/linkease
 git clone  https://github.com/gdy666/luci-app-lucky.git package/lucky
+git clone --depth 1 https://github.com/sbwml/luci-app-mosdns package/mosdns
+git clone https://github.com/rufengsuixing/luci-app-adguardhome.git package/adguardhome
 
 # 加入OpenClash核心
 #chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
@@ -44,12 +55,12 @@ cp -f $GITHUB_WORKSPACE/argon/icon/favicon-96x96.png feeds/luci/themes/luci-them
 cp -f $GITHUB_WORKSPACE/argon/icon/ms-icon-144x144.png feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/icon/ms-icon-144x144.png
 
 # mosdns
-find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
-find ./ | grep Makefile | grep mosdns | xargs rm -f
-git clone https://github.com/sbwml/luci-app-mosdns package/mosdns
-git clone https://github.com/sbwml/v2ray-geodata package/geodata
+#find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
+#find ./ | grep Makefile | grep mosdns | xargs rm -f
+#git clone https://github.com/sbwml/luci-app-mosdns package/mosdns
+#git clone https://github.com/sbwml/v2ray-geodata package/geodata
 
 # Add luci-app-adguardhome
-git clone https://github.com/rufengsuixing/luci-app-adguardhome.git package-temp/luci-app-adguardhome
-mv -f package-temp/luci-app-adguardhome package/
-rm -rf package-temp
+#git clone https://github.com/rufengsuixing/luci-app-adguardhome.git package-temp/luci-app-adguardhome
+#mv -f package-temp/luci-app-adguardhome package/
+#rm -rf package-temp
