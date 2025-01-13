@@ -27,7 +27,6 @@ git clone --depth=1 https://github.com/morytyann/OpenWrt-mihomo package/luci-app
 
 echo "
 # 插件
-CONFIG_PACKAGE_luci-app-amlogic=y
 CONFIG_PACKAGE_luci-app-lucky=y
 " >> .config
 
