@@ -13,10 +13,10 @@ jobs:
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
-        event-type: ImmortalWrt24.10
+        event-type: N1-ImmortalWrt24.10
 
     - name: ImmortalWrt 23.05
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
-        event-type: ImmortalWrt23.05
+        event-type: N1-ImmortalWrt23.05
