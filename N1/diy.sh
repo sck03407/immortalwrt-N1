@@ -16,7 +16,7 @@ function git_sparse_clone() {
 # Add packages
 git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
 git clone --depth 1 https://github.com/ophub/luci-app-amlogic package/amlogic
-git clone  https://github.com/gdy666/luci-app-lucky.git package/lucky
+git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 git clone --depth 1 https://github.com/sbwml/luci-app-mosdns package/mosdns
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/morytyann/OpenWrt-mihomo package/luci-app-mihomo
