@@ -27,10 +27,10 @@ git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 #chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
 #$GITHUB_WORKSPACE/N1/preset-clash-core.sh
 
-echo "
+#echo "
 # 插件
-CONFIG_PACKAGE_luci-app-lucky=y
-" >> .config
+#CONFIG_PACKAGE_luci-app-lucky=y
+#" >> .config
 
 # 修改默认IP
 sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generate
