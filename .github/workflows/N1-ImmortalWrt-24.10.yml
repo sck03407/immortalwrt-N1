@@ -146,7 +146,6 @@ jobs:
         OPENWRT_VER: $(date +"%Y.%m.%d")
         SW_FLOWOFFLOAD: 0
         SFE_FLOW: 0
-        ENABLE_WIFI_K510: 0
 
     - name: 生成发布标签
       if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
