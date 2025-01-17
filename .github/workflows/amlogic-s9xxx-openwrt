@@ -6,12 +6,34 @@ on:
       ssh:
         description: 'SSH connection to Actions'
         required: false
-        default: 'false'
-  repository_dispatch:
-    types:
-      - N1-ImmortalWrt24.10   
-  schedule:
-    - cron: "0 0 1 * *"
+        default: 'false'  
+      releases_branch:
+        description: "Select the releases branch"
+        required: false
+        default: "master"
+        type: choice
+        options:
+          - 'openwrt-23.05'
+          - 'openwrt-24.10'
+          - 'master'
+      openwrt_kernel:
+        description: "Select kernel version"
+        required: false
+        default: "5.15.y_6.6.y"
+        type: choice
+        options:
+          - 5.4.y
+          - 5.10.y
+          - 5.15.y
+          - 6.1.y
+          - 6.6.y
+          - 6.1.y_6.6.y
+          - 5.15.y_6.6.y
+      auto_kernel:
+        description: "Auto use the latest kernel"
+        required: false
+        default: true
+        type: boolean
     
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
