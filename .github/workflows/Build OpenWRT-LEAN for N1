@@ -156,7 +156,7 @@ jobs:
         KERNEL_VERSION_NAME: 5.15.148
         KERNEL_AUTO_LATEST: false
         PACKAGE_SOC: s905d
-        WHOAMI: fightroad
+        WHOAMI: sck03
         SW_FLOWOFFLOAD: 0
         SFE_FLOW: 0
        
