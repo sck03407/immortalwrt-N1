@@ -11,7 +11,7 @@ on:
       releases_branch:
         description: "Select the releases branch"
         required: false
-        default: "mainr"
+        default: "main"
         type: choice
         options:
           - '23.05'
