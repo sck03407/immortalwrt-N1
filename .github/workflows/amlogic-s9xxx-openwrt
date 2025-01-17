@@ -7,6 +7,15 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'  
+      openwrt_branch:
+        description: "Select the releases branch"
+        required: false
+        default: "immortalwrt"
+        type: choice
+        options:
+          - 'immortalwrt'
+          - 'openwrt'
+          - 'master'
       releases_branch:
         description: "Select the releases branch"
         required: false
