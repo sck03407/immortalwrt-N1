@@ -7,23 +7,16 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'  
-      openwrt_branch:
-        description: "Select the releases branch"
-        required: false
-        default: "immortalwrt"
-        type: choice
-        options:
-          - 'immortalwrt'
-          - 'openwrt'
+
       releases_branch:
         description: "Select the releases branch"
         required: false
-        default: "master"
+        default: "mainr"
         type: choice
         options:
-          - 'openwrt-23.05'
-          - 'openwrt-24.10'
-          - 'master'
+          - '23.05'
+          - '24.10'
+          - 'main'
       openwrt_kernel:
         description: "Select kernel version"
         required: false
@@ -44,7 +37,7 @@ on:
         type: boolean
     
 env:
-  REPO_URL: https://github.com/${{ inputs.openwrt_branch }}/${{ inputs.openwrt_branch }}
+  REPO_URL: https://github.com/Lienol/openwrt
   REPO_BRANCH: ${{ inputs.releases_branch }}
   CONFIG_FILE: N1-IMM/.config
   DIY_SH: N1-IMM/diy.sh
