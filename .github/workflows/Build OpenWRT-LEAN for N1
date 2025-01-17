@@ -157,7 +157,7 @@ jobs:
         KERNEL_AUTO_LATEST: false
         PACKAGE_SOC: s905d
         WHOAMI: fightroad
-        SW_FLOWOFFLOAD: 1
+        SW_FLOWOFFLOAD: 0
         SFE_FLOW: 0
        
     - name: 生成发布标签
