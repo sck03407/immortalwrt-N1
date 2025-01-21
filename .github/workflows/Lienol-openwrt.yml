@@ -331,16 +331,10 @@ jobs:
           cd openwrt/
           ${GITHUB_WORKSPACE}/${DIY_P1_SH}
 
-      - name: Copy config files
-        run: cp -f -a ./config/files/ ./openwrt && cp -f -a ./config/${{ inputs.source_branch }}/etc/ openwrt/files && chmod -R 7777 ./openwrt/files #### && mkdir -p ./openwrt/files ####
-
       - name: Update feeds
         run: cd openwrt/ && ./scripts/feeds update -a
 
-      - name: Install feeds first
-        run: cd openwrt/ && ./scripts/feeds install -a
-
-      - name: Install feeds second
+      - name: Install feeds
         run: cd openwrt/ && ./scripts/feeds install -a
 
       - name: Load custom configuration
