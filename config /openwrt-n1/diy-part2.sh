@@ -83,8 +83,17 @@ git clone https://github.com/vpei/luci-app-amlogic.git package/luci-app-amlogic
 # ln -s /mnt/sda3/clash/config.yaml files/www/www2/config.yaml
 # ln -s /mnt/sda3/clash/bak/config.yaml files/www/www2/clash.yaml
 
-#
-# Apply patch
-# git apply ../config/patches/{0001*,0002*}.patch --directory=feeds/luci
-#
+git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
+git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
+git clone --depth=1 https://github.com/morytyann/OpenWrt-mihomo package/luci-app-mihomo
+
+rm -rf feeds/luci/applications/luci-app-passwall
+rm -rf feeds/luci/applications/luci-app-mihomo
+
+# mosdns
+rm -rf feeds/packages/lang/golang
+git clone https://github.com/sbwml/packages_lang_golang -b 23.x feeds/packages/lang/golang
+rm -rf feeds/packages/net/v2ray-geodata
+git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
+git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
 # ------------------------------- Other ends -------------------------------
