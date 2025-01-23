@@ -150,33 +150,52 @@ jobs:
 
     - name: 打包镜像文件
       if: ${{ env.compile_status }} == 'success' && !cancelled()
-      uses: sck03407/openwrt_packit@master
+      uses: unifreq/openwrt_packit@master
       env:
         OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
-        KERNEL_VERSION_NAME: 5.15.y_6.6.y
-        KERNEL_AUTO_LATEST: false
+        KERNEL_REPO_URL: breakingbadboy/OpenWrt
+        KERNEL_VERSION_NAME: ${{ inputs.openwrt_kernel }}
+        KERNEL_AUTO_LATEST: ${{ inputs.auto_kernel }}
         PACKAGE_SOC: s905d
+        GZIP_IMGS: .xz
         WHOAMI: sck03
+        OPENWRT_VER: $(date +"%Y.%m.%d")
         SW_FLOWOFFLOAD: 0
         SFE_FLOW: 0
-       
+
     - name: 生成发布标签
-      uses: ncipollo/release-action@main
       if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
+      run: |
+        echo "release_tag=$(date +"%Y.%m.%d-%H.%M")" >> ${GITHUB_OUTPUT}
+        touch release.txt
+        echo "
+        🍁 注意事项：首次使用建议全新刷写
+          
+        💻 适用机型: 斐讯N1
+
+        📂 源码: ${{ env.REPO_URL }}
+
+        🌳 分支: ${{ env.REPO_BRANCH }}
+
+        ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
+
+        🌐 管理地址: 192.168.6.6
+
+        👤 用户名: root
+
+        🔒 密码: password 
+        
+        " >> release.txt
+        echo "tag_status=success" >> $GITHUB_ENV
+
+    - name: 发布固件到 Releases
+      uses: softprops/action-gh-release@v2
+      if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-        tag: OpenWrt_N1_${{ env.PACKAGED_OUTPUTDATE }}
-        artifacts: /opt/openwrt_packit/output/*
-        allowUpdates: true
+        tag_name: openwrt-${{ env.build_date }}
+        files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
+        body_path: release.txt
         token: ${{ env.GITHUB_TOKEN }}
-        body: |
-          基于lean openwrt构建
-          📂 源码: ${{ env.REPO_URL }}
-          ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
-          首次使用建议全新刷写
-          * 基本信息
-          IP: 192.168.6.6
-          账户: root
-          密码: password
 
     - name: 删除运行记录
       uses: Mattraks/delete-workflow-runs@main
@@ -184,7 +203,7 @@ jobs:
         retain_days: 1
         keep_minimum_runs: 1
         token: ${{ env.GITHUB_TOKEN }}
-    
+
     - name: 删除自动发布的旧固件
       uses: dev-drprasad/delete-older-releases@master
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
