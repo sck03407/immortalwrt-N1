@@ -1,4 +1,4 @@
-name: Build LEAN for N1
+name: Build LEDE for N1
 
 on:
   workflow_dispatch:
@@ -36,7 +36,7 @@ on:
 
   repository_dispatch:
     types:
-      - N1-LEAN  
+      - N1-LEDE  
   schedule:
     - cron: "0 0 1 * *"
     
