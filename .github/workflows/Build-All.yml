@@ -25,4 +25,4 @@ jobs:
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
-        event-type: N1-OpenWrt
+        event-type: N1-LEDE
