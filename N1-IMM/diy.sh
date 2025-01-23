@@ -32,6 +32,12 @@ git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 #CONFIG_PACKAGE_luci-app-lucky=y
 #" >> .config
 
+# 使用当前日期更新 DISTRIB_REVISION
+#sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='R$(date +%Y.%m.%d)'|g" package/base-files/files/etc/openwrt_release
+
+# 向文件添加 DISTRIB_SOURCECODE
+echo "DISTRIB_SOURCECODE='immortalwrt'" >> package/base-files/files/etc/openwrt_release
+
 # 修改默认IP
 sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generate
 
