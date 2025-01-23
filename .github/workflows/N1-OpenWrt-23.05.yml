@@ -1,4 +1,4 @@
-name: N1-OpenWrt-23.05
+name: Build ImmortalWrt24.10 for N1
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
       releases_branch:
         description: "Select the releases branch"
         required: false
-        default: "openwrt-23.05"
+        default: "master"
         type: choice
         options:
           - 'openwrt-23.05'
@@ -36,105 +36,129 @@ on:
         default: true
         type: boolean
 
-  
   repository_dispatch:
     types:
-      - N1-OpenWrt-23.05
-
+      - N1-ImmortalWrt24.10   
+  schedule:
+    - cron: "0 0 1 * *"
+    
 env:
+  REPO_URL: https://github.com/openwrt/openwrt
+  REPO_BRANCH: ${{ inputs.releases_branch }}
+  CONFIG_FILE: N1/.config
+  DIY_SH: N1/diy.sh
+  FILES: N1/files
   TZ: Asia/Shanghai
   GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
 
+
 jobs:
   build:
-    runs-on: ubuntu-24.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Show system
+    - name: 检查服务器配置
       run: |
-        echo -e "💬 Server information \n"
-        echo -e "💻 Server running on Ubuntu: [ Release: $(cat /etc/os-release | grep VERSION_CODENAME | cut -d '=' -f2) / Host: $(arch) ] \n"
-        echo -e "🧮 Server CPU configuration information: \n$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
-        echo -e "💾 Server memory usage: \n$(free -h) \n"
-        echo -e "🗃️ Server space usag: \n$(df -hT ${GITHUB_WORKSPACE}) \n"
-      
-    - name: Maximize build space
-      uses: easimon/maximize-build-space@master
+        echo "⚠️ 警告：编译插件需谨慎选择，注意CPU性能"
+        echo "推荐避免选择Node.js相关插件"
+        echo "--------------------------CPU信息--------------------------"
+        echo "CPU物理数量:$(cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l)"
+        echo "CPU核心信息：$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c)"
+        echo "--------------------------内存信息--------------------------"
+        sudo lshw -short -C memory | grep GiB
+        echo "--------------------------硬盘信息--------------------------"
+        echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)"
+        df -Th
+        
+    - name: 优化磁盘空间
+      uses: "hugoalh/disk-space-optimizer-ghaction@v0.8.1"
       with:
-        swap-size-mb: 1024
-        temp-reserve-mb: 512
-        root-reserve-mb: 4608
+        operate_sudo: "True"
+        general_include: ".+"
+        general_exclude: |-
+          ^GCC$
+          ^G\+\+$
+          Clang
+          LLVM
+        docker_include: ".+"
+        docker_prune: "True"
+        docker_clean: "True"
+        apt_prune: "True"
+        apt_clean: "True"
+        homebrew_prune: "True"
+        homebrew_clean: "True"
+        npm_prune: "True"
+        npm_clean: "True"
+        os_swap: "True"
+
+    - name: 最大化构建空间
+      uses: easimon/maximize-build-space@master
+      with: 
+        root-reserve-mb: 10240
+        swap-size-mb: 1
         remove-dotnet: 'true'
         remove-android: 'true'
         remove-haskell: 'true'
-        remove-codeql: 'true'
+        remove-docker-images: 'true'
 
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Init build dependencies
+    - name: 检查磁盘空间
+      run: df -hT
+        
+    - name: 检出代码
+      uses: actions/checkout@main
+      
+    - name: 初始化环境
       env:
         DEBIAN_FRONTEND: noninteractive
-      run: |
-        sudo -E apt-get -qq update
-        sudo /bin/bash -c "$(curl -sL https://git.io/vokNn)"
-        sudo -E apt-fast -y -qq install asciidoc bash bcc bin86 binutils bison bzip2 clang-15 llvm-15 file flex g++ g++-multilib gawk gcc gcc-multilib gettext git gzip help2man intltool libboost-dev libelf-dev libncurses-dev libncurses5-dev libssl-dev libthread-queue-any-perl libusb-dev libxml-parser-perl make patch perl-modules python3-dev python3-pip python3-pyelftools python3-setuptools rsync sharutils swig time unzip util-linux wget xsltproc zlib1g-dev zip
-        sudo -E apt-fast -y -qq install dos2unix dwarves quilt npm
-        sudo -E npm install -g pnpm
-        pip3 install --user -U pylibfdt --break-system-packages
+      run: | 
+        sudo -E apt-get -qq update -y
+        sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/sck03407/immortalwrt-N1/main/ophub-ubuntu2204-make-openwrt-depend)
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
-        sudo -E git config --global user.name 'GitHub Actions' && git config --global user.email 'noreply@github.com'
-        sudo -E git config --global core.abbrev auto
-        df -h
-
-    - name: Prepare source code
+        sudo timedatectl set-timezone "$TZ"
+        sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
+        
+    - name: 克隆源代码
+      working-directory: ./
       run: |
-        sudo chown -R runner:runner ${{ github.workspace }}
-        echo "build_date=$(date +%Y.%m.%d)" >> ${GITHUB_ENV}
-        cp -r ./scripts/openwrt-23.05/. ./
-        /bin/bash 01_prepare_source_code.sh
-
-    - name: Prepare package
-      working-directory: ${{ github.workspace }}/openwrt
+        git clone $REPO_URL -b $REPO_BRANCH openwrt --depth=1
+        
+    - name: 缓存编译
+      uses: stupidloud/cachewrtbuild@main
+      with:
+        ccache: 'true'
+        mixkey: N1-${{ env.REPO_BRANCH }}
+        prefix: ${{ github.workspace }}/openwrt
+        
+    - name: 更新并安装feeds
+      working-directory: ./openwrt
       run: |
-        cp -r ../scripts/openwrt-23.05/. ./
-        /bin/bash 02_prepare_package.sh
-
-    - name: Load custom configuration
+        ./scripts/feeds update -a -f
+        ./scripts/feeds install -a -f
+        
+    - name: 加载自定义配置
       run: |
-        latest_release="$(curl -s https://github.com/openwrt/openwrt/tags | grep -Eo "v[0-9\.]+-*r*c*[0-9]*.tar.gz" | sed -n '/23.05/p' | sed -n 1p | sed 's/.tar.gz//g' | sed 's/v//g')"
-        kernel_version="$(cat openwrt/include/kernel-5.15 | grep -oE "[1-9]\.[1-9][0-9]*\.[1-9][0-9]*")"
-        sed -i "s/DATE/${{ env.build_date }}/;s/WRT_SOUR/OpenWrt/;s/RELEASES/${latest_release}/" ./openwrt/files/etc/banner
-        echo "latest_release=${latest_release}" >> ${GITHUB_ENV}
-        echo "kernel_version=${kernel_version}" >> ${GITHUB_ENV}
-
-    - name: Make config
-      working-directory: ${{ github.workspace }}/openwrt
-      run: |
-        cp -f ../config/openwrt-23.05/config.seed .config
-        make defconfig
+        [ -e $FILES ] && mv $FILES openwrt/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        chmod +x $DIY_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_SH
 
     - name: 下载软件包
-      working-directory: ${{ github.workspace }}/openwrt
+      working-directory: ./openwrt
       run: |
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
+        make defconfig
+        make download -j$(nproc)
         find dl -size -1024c -exec rm -f {} \;
-
+        
     - name: 编译固件
-      working-directory: ${{ github.workspace }}/openwrt
       run: |
-        make -j$(nproc) || make -j1 || make -j1 V=s
-
-    - name: Upload firmware directory
-      uses: actions/upload-artifact@main
-      with:
-        name: OpenWrt_rootfs_${{ env.build_date }}
-        path: openwrt/bin
+        cd openwrt
+        make -j$(nproc) || make -j$((`nproc`/2)) || make -j1 V=s
+        echo "compile_status=success" >> $GITHUB_ENV
 
     - name: 打包镜像文件
+      if: ${{ env.compile_status }} == 'success' && !cancelled()
       uses: unifreq/openwrt_packit@master
       env:
         OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
@@ -177,7 +201,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-        tag_name: openwrt-23.05_${{ env.PACKAGED_OUTPUTDATE }}
+        tag_name: openwrt-24.10_${{ env.PACKAGED_OUTPUTDATE }}
         files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
         body_path: release.txt
         token: ${{ env.GITHUB_TOKEN }}
