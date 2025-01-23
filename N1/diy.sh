@@ -18,7 +18,7 @@ function git_sparse_clone() {
 git clone --depth 1 https://github.com/ophub/luci-app-amlogic package/amlogic
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/morytyann/OpenWrt-mihomo package/luci-app-mihomo
-
+git clone --depth=1 https://github.com/vernesong/OpenClash package/OpenClash
 git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 #git clone --depth 1 https://github.com/sbwml/luci-app-mosdns package/mosdns
 
@@ -40,8 +40,10 @@ sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generat
 # 清理软件包
 #rm -rf feeds/luci/themes/luci-theme-argon
 #rm -rf feeds/luci/applications/luci-app-argon-config
-
+rm -rf feeds/luci/applications/luci-app-adguardhome
 rm -rf feeds/luci/applications/luci-app-mihomo
+rm -rf feeds/luci/applications/luci-app-amlogic
+rm -rf feeds/luci/applications/luci-app-openclash
 
 # 修改默认主题
 #sed -i 's/luci-theme-design/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
