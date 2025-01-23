@@ -38,9 +38,7 @@ on:
 
   repository_dispatch:
     types:
-      - N1-ImmortalWrt 
-  schedule:
-    - cron: "0 0 1 * *"
+      - N1-ImmortalWrt
     
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
