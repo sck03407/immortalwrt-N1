@@ -53,14 +53,7 @@ rm -rf feeds/luci/applications/luci-app-mihomo
 # passwall
 rm -rf feeds/luci/applications/luci-app-passwall
 git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
-# 添加 chinadns-ng #
-git clone --depth 1 https://github.com/zfl9/chinadns-ng.git package/chinadns-ng
-# 添加 dns2socks #
-git clone --depth 1 https://github.com/xiaorouji/openwrt-package.git package/passwall-deps
-cp -r package/passwall-deps/net/dns2socks package/dns2socks
-# 添加 tcping #
-git clone --depth 1 https://github.com/xiaorouji/openwrt-package.git package/passwall-deps
-cp -r package/passwall-deps/net/tcping package/tcping
+git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall-packages
 
 # mosdns
 rm -rf feeds/packages/lang/golang
