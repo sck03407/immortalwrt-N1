@@ -38,9 +38,7 @@ on:
 
   repository_dispatch:
     types:
-      - N1-OpenWrt   
-  schedule:
-    - cron: "0 0 1 * *"
+      - N1-OpenWrt
     
 env:
   REPO_URL: https://github.com/openwrt/openwrt
