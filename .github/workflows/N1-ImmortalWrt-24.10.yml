@@ -1,4 +1,4 @@
-name: Build ImmortalWrt24.10 for N1
+name: Build ImmortalWrt for N1
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ on:
 
   repository_dispatch:
     types:
-      - N1-ImmortalWrt24.10   
+      - N1-ImmortalWrt 
   schedule:
     - cron: "0 0 1 * *"
     
