@@ -28,6 +28,12 @@ rm -rf feeds/packages/utils/v2dat
 rm -rf feeds/luci/applications/luci-app-passwall
 #rm -rf feeds/luci/applications/luci-app-mihomo
 
+# 使用当前日期更新 DISTRIB_REVISION
+#sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='R$(date +%Y.%m.%d)'|g" package/base-files/files/etc/openwrt_release
+
+# 向文件添加 DISTRIB_SOURCECODE
+echo "DISTRIB_SOURCECODE='lede" >> package/base-files/files/etc/openwrt_release
+
 # Default IP
 sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generate
 
