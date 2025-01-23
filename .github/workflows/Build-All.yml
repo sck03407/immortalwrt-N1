@@ -6,24 +6,31 @@ on:
     - cron: "0 0 1 * *"  
 
 jobs:
-  build:
+  immortalwrt:
     runs-on: ubuntu-22.04
     if: github.event.repository.owner.id == github.event.sender.id
-
     steps:
-    - name: ImmortalWrt
+    - name: Trigger ImmortalWrt
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
         event-type: N1-ImmortalWrt
 
-    - name: OpenWrt
+  openwrt:
+    runs-on: ubuntu-22.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+    - name: Trigger OpenWrt
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
         event-type: N1-OpenWrt
 
-    - name: LEDE
+  lede:
+    runs-on: ubuntu-22.04
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+    - name: Trigger LEDE
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
