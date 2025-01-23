@@ -168,7 +168,7 @@ jobs:
         PACKAGE_SOC: s905d
         GZIP_IMGS: .xz
         WHOAMI: sck03
-        OPENWRT_VER: $(date +"%Y.%m.%d")
+        OPENWRT_VER: immortalwrt-${{ env.REPO_BRANCH }}-$(date +"%Y.%m.%d")
         SW_FLOWOFFLOAD: 0
         SFE_FLOW: 0
 
