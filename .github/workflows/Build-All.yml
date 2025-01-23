@@ -9,14 +9,20 @@ jobs:
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
-    - name: ImmortalWrt 24.10
+    - name: ImmortalWrt
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
-        event-type: N1-ImmortalWrt24.10
+        event-type: N1-ImmortalWrt
 
-    - name: ImmortalWrt 23.05
+    - name: OpenWrt
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.REPO_TOKEN }}
-        event-type: N1-ImmortalWrt23.05
+        event-type: N1-OpenWrt
+
+    - name: LEDE
+      uses: peter-evans/repository-dispatch@v2
+      with:
+        token: ${{ secrets.REPO_TOKEN }}
+        event-type: N1-OpenWrt
