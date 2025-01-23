@@ -32,6 +32,9 @@ git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 #CONFIG_PACKAGE_luci-app-lucky=y
 #" >> .config
 
+# 设置默认密码为 password
+sed -i 's/root:::0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.::0:99999:7:::/g' openwrt/package/base-files/files/etc/shadow
+
 # 修改默认IP
 sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generate
 
