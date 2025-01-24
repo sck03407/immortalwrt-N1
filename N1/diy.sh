@@ -35,7 +35,7 @@ git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 #sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='R$(date +%Y.%m.%d)'|g" package/base-files/files/etc/openwrt_release
 
 # 向文件添加 DISTRIB_SOURCECODE
-echo "DISTRIB_SOURCECODE='official'" >> package/base-files/files/etc/openwrt_release
+#echo "DISTRIB_SOURCECODE='official'" >> package/base-files/files/etc/openwrt_release
 
 # 设置默认密码为 password
 sed -i 's/root:::0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.::0:99999:7:::/g' package/base-files/files/etc/shadow
@@ -66,7 +66,7 @@ git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages packa
 # mosdns
 rm -rf feeds/packages/lang/golang
 git clone https://github.com/sbwml/packages_lang_golang -b 23.x feeds/packages/lang/golang
-rm -rf feeds/packages/net/v2ray-geodata
 
+find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
 git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
 git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
