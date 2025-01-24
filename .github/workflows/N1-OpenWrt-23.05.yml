@@ -166,7 +166,7 @@ jobs:
         PACKAGE_SOC: s905d
         GZIP_IMGS: .xz
         WHOAMI: sck03
-        OPENWRT_VER: immortalwrt-${{ env.REPO_BRANCH }}-$(date +"%Y.%m.%d")
+        OPENWRT_VER: OpenWrt-${{ env.REPO_BRANCH }}-$(date +"%Y.%m.%d")
         SW_FLOWOFFLOAD: 0
         SFE_FLOW: 0
 
@@ -193,7 +193,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-        tag_name: openwrt-${{ env.build_date }}
+        tag_name: openwrt-$(date +"%Y.%m.%d")
         files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
         body_path: release.txt
         token: ${{ env.GITHUB_TOKEN }}
