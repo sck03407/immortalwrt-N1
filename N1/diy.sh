@@ -61,9 +61,9 @@ rm -rf feeds/luci/applications/luci-app-openclash
 #sed -i 's/ImmortalWrt/OpenWrt/g' package/base-files/files/bin/config_generate
 
 # passwall
-#rm -rf feeds/luci/applications/luci-app-passwall
-#git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
-#git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall-packages
+rm -rf feeds/luci/applications/luci-app-passwall
+git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
+git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall-packages
 
 # mosdns
 rm -rf feeds/packages/lang/golang
@@ -71,4 +71,4 @@ git clone https://github.com/sbwml/packages_lang_golang -b 23.x feeds/packages/l
 rm -rf feeds/packages/net/v2ray-geodata
 #find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
 git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
-git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
+#git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
