@@ -20,7 +20,9 @@ git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome packag
 git clone --depth=1 https://github.com/morytyann/OpenWrt-mihomo package/luci-app-mihomo
 git clone --depth=1 https://github.com/vernesong/OpenClash package/OpenClash
 git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
+git clone --depth=1 https://github.com/immortalwrt/homeproxy package/homeproxy
 #git clone --depth 1 https://github.com/sbwml/luci-app-mosdns package/mosdns
+
 
 # 加入OpenClash核心
 #chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
@@ -59,9 +61,9 @@ rm -rf feeds/luci/applications/luci-app-openclash
 #sed -i 's/ImmortalWrt/OpenWrt/g' package/base-files/files/bin/config_generate
 
 # passwall
-rm -rf feeds/luci/applications/luci-app-passwall
-git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
-git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall-packages
+#rm -rf feeds/luci/applications/luci-app-passwall
+#git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
+#git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall-packages
 
 # mosdns
 rm -rf feeds/packages/lang/golang
