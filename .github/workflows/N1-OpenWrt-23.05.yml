@@ -171,6 +171,7 @@ jobs:
         SFE_FLOW: 0
 
     - name: 生成发布标签
+      id: set_release_tag
       if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
       run: |
         echo "release_tag=$(date +"%Y.%m.%d")" >> ${GITHUB_OUTPUT}
