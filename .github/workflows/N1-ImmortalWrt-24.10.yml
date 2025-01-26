@@ -193,7 +193,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-        tag_name: openwrt_$release_tag
+        tag_name: openwrt_${{ release_tag }}
         files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
         body_path: release.txt
         token: ${{ env.GITHUB_TOKEN }}
