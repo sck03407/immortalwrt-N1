@@ -201,6 +201,7 @@ jobs:
         SFE_FLOW: 0
 
     - name: 生成发布标签
+      id: set_release_tag
       if: ${{ env.PACKAGED_STATUS == 'success' }} && !cancelled()
       run: |
         echo "release_tag=$(date +"%Y.%m.%d")" >> ${GITHUB_OUTPUT}
@@ -223,7 +224,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: ${{ env.tag_status == 'success' }} && !cancelled()
       with:
-        tag_name: openwrt-${{ steps.set_release_tag.outputs.release_tag }}
+        tag_name: openwrt_${{ steps.set_release_tag.outputs.release_tag }}
         files: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.xz
         body_path: release.txt
         token: ${{ env.GITHUB_TOKEN }}
