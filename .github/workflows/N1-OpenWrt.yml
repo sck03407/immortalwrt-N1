@@ -35,10 +35,6 @@ on:
         required: false
         default: true
         type: boolean
-
-  repository_dispatch:
-    types:
-      - N1-OpenWrt
     
 env:
   REPO_URL: https://github.com/openwrt/openwrt
