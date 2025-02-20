@@ -1,35 +1,39 @@
 name: Build-All
 
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'  # 每周一的00:00 UTC时间执行
+  workflow_dispatch:      # 仍然保留手动触发选项
 
 jobs:
   immortalwrt:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: github.event.repository.owner.id == github.event.sender.id || github.event_name == 'schedule'
     steps:
-    - name: Trigger ImmortalWrt
-      uses: peter-evans/repository-dispatch@v2
-      with:
-        token: ${{ secrets.REPO_TOKEN }}
-        event-type: N1-ImmortalWrt
+      - name: Trigger ImmortalWrt
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+          event-type: N1-ImmortalWrt
 
   openwrt:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    needs: immortalwrt  # 等待 immortalwrt 作业完成后再执行
+    if: github.event.repository.owner.id == github.event.sender.id || github.event_name == 'schedule'
     steps:
-    - name: Trigger OpenWrt
-      uses: peter-evans/repository-dispatch@v2
-      with:
-        token: ${{ secrets.REPO_TOKEN }}
-        event-type: N1-OpenWrt
+      - name: Trigger OpenWrt
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+          event-type: N1-OpenWrt
 
   lede:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    needs: openwrt  # 等待 openwrt 作业完成后再执行
+    if: github.event.repository.owner.id == github.event.sender.id || github.event_name == 'schedule'
     steps:
-    - name: Trigger LEDE
-      uses: peter-evans/repository-dispatch@v2
-      with:
-        token: ${{ secrets.REPO_TOKEN }}
-        event-type: N1-LEDE
+      - name: Trigger LEDE
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+          event-type: N1-LEDE
