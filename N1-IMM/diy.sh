@@ -18,7 +18,7 @@ git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon package/luci-t
 git clone --depth 1 https://github.com/ophub/luci-app-amlogic package/amlogic
 git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
-git clone --depth=1 https://github.com/morytyann/OpenWrt-mihomo package/luci-app-mihomo
+git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki package/luci-app-nikki
 
 git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 #git clone --depth 1 https://github.com/sbwml/luci-app-mosdns package/mosdns
@@ -29,6 +29,8 @@ git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 
 #echo "
 # 插件
+CONFIG_PACKAGE_luci-app-nikki=y
+" >> .config
 #CONFIG_PACKAGE_luci-app-lucky=y
 #" >> .config
 
@@ -44,9 +46,8 @@ sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generat
 # 清理软件包
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
-#rm -rf feeds/luci/applications/openwrt-passwall
 rm -rf feeds/luci/applications/luci-app-passwall
-rm -rf feeds/luci/applications/luci-app-mihomo
+# rm -rf feeds/luci/applications/luci-app-mihomo
 
 # 修改默认主题
 #sed -i 's/luci-theme-design/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
