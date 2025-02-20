@@ -28,7 +28,7 @@ git clone --depth=1 https://github.com/immortalwrt/homeproxy package/homeproxy
 #chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
 #$GITHUB_WORKSPACE/N1/preset-clash-core.sh
 
-#echo "
+echo "
 # 插件
 CONFIG_PACKAGE_luci-app-nikki=y
 " >> .config
