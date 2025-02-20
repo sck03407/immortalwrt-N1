@@ -33,11 +33,6 @@ on:
         required: false
         default: true
         type: boolean
-
-  repository_dispatch:
-    types:
-      - N1-LEDE  
-
     
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
