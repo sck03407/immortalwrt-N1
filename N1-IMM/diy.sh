@@ -27,12 +27,10 @@ git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
 #chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
 #$GITHUB_WORKSPACE/N1/preset-clash-core.sh
 
-#echo "
+echo "
 # 插件
 CONFIG_PACKAGE_luci-app-nikki=y
 " >> .config
-#CONFIG_PACKAGE_luci-app-lucky=y
-#" >> .config
 
 # 使用当前日期更新 DISTRIB_REVISION
 #sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='R$(date +%Y.%m.%d)'|g" package/base-files/files/etc/openwrt_release
