@@ -1,14 +1,14 @@
 name: Build-All
 
 on:
-  workflow_dispatch:   # 手动触发
-  schedule:            # 每月1日自动触发
+  workflow_dispatch: # 手动触发
+  schedule:          # 每月1日自动触发
     - cron: '0 0 1 * *'  # 每月的第一天 UTC 时间 00:00
 
 jobs:
   immortalwrt:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.repository.owner.id == github.event.sender.id)
     steps:
     - name: Trigger ImmortalWrt
       uses: peter-evans/repository-dispatch@v2
@@ -18,7 +18,7 @@ jobs:
 
   openwrt:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.repository.owner.id == github.event.sender.id)
     steps:
     - name: Trigger OpenWrt
       uses: peter-evans/repository-dispatch@v2
@@ -28,7 +28,7 @@ jobs:
 
   lede:
     runs-on: ubuntu-22.04
-    if: github.event.repository.owner.id == github.event.sender.id
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.repository.owner.id == github.event.sender.id)
     steps:
     - name: Trigger LEDE
       uses: peter-evans/repository-dispatch@v2
