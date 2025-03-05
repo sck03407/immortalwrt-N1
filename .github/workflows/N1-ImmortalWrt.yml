@@ -29,7 +29,7 @@ on:
           - 6.1.y
           - 6.6.y
           - 6.1.y_6.6.y
-          - 5.15.y_6.6.y
+          - 6.6.y_6.12.y
       auto_kernel:
         description: "Auto use the latest kernel"
         required: false
@@ -63,59 +63,44 @@ jobs:
         echo "--------------------------硬盘信息--------------------------"
         echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)"
         df -Th
-        
-    - name: 优化磁盘空间
-      uses: "hugoalh/disk-space-optimizer-ghaction@v0.8.1"
-      with:
-        operate_sudo: "True"
-        general_include: ".+"
-        general_exclude: |-
-          ^GCC$
-          ^G\+\+$
-          Clang
-          LLVM
-        docker_include: ".+"
-        docker_prune: "True"
-        docker_clean: "True"
-        apt_prune: "True"
-        apt_clean: "True"
-        homebrew_prune: "True"
-        homebrew_clean: "True"
-        npm_prune: "True"
-        npm_clean: "True"
-        os_swap: "True"
 
-    - name: 最大化构建空间
-      uses: easimon/maximize-build-space@master
-      with: 
-        root-reserve-mb: 10240
-        swap-size-mb: 1
-        remove-dotnet: 'true'
-        remove-android: 'true'
-        remove-haskell: 'true'
-        remove-docker-images: 'true'
-
-    - name: 检查磁盘空间
-      run: df -hT
-        
     - name: 检出代码
       uses: actions/checkout@main
-      
+
+    - name: 清理空间
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
     - name: 初始化环境
       env:
         DEBIAN_FRONTEND: noninteractive
-      run: | 
+      run: |
         sudo -E apt-get -qq update -y
-        sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/sck03407/immortalwrt-N1/main/make-openwrt-depends)
+        sudo -E apt-get -qq install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+        bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib \
+        git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev \
+        libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libreadline-dev libssl-dev libtool lrzsz \
+        mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pyelftools \
+        libpython3-dev qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip \
+        vim wget xmlto xxd zlib1g-dev
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
-        sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
-        
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+    
     - name: 克隆源代码
-      working-directory: ./
+      working-directory: /workdir
       run: |
-        git clone $REPO_URL -b $REPO_BRANCH openwrt --depth=1
+        git clone $REPO_URL -b $REPO_BRANCH --single-branch --depth=1 openwrt
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
         
     - name: 缓存编译
       uses: stupidloud/cachewrtbuild@main
@@ -125,28 +110,31 @@ jobs:
         prefix: ${{ github.workspace }}/openwrt
         
     - name: 更新并安装feeds
-      working-directory: ./openwrt
       run: |
-        ./scripts/feeds update -a -f
-        ./scripts/feeds install -a -f
+        chmod +x $DIY_SH
+        cd openwrt
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+        $GITHUB_WORKSPACE/$DIY_SH
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
         
     - name: 加载自定义配置
       run: |
         [ -e $FILES ] && mv $FILES openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_SH
 
     - name: 下载软件包
       working-directory: ./openwrt
       run: |
         make defconfig
         make download -j$(nproc)
+        find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
         
     - name: 编译固件
       run: |
+        chmod -R 755 openwrt      
         cd openwrt
         make -j$(nproc) || make -j$((`nproc`/2)) || make -j1 V=s
         echo "compile_status=success" >> $GITHUB_ENV
