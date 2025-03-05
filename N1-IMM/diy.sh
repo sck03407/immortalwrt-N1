@@ -44,7 +44,7 @@ sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generat
 # 清理软件包
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
-rm -rf feeds/luci/applications/openwrt-passwall
+rm -rf feeds/luci/applications/luci-app-passwall
 # rm -rf feeds/luci/applications/luci-app-mihomo
 
 # 修改默认主题
