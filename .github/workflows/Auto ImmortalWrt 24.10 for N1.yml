@@ -86,7 +86,6 @@ jobs:
         prefix: ${{ github.workspace }}/openwrt
         
     - name: 更新并安装feeds
-      working-directory: ./openwrt
       run: |
         chmod +x $DIY_SH
         cd openwrt
