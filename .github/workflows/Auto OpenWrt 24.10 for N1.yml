@@ -125,6 +125,7 @@ jobs:
         cd openwrt
         make -j$(nproc) || make -j$((`nproc`/2)) || make -j1 V=s
         echo "compile_status=success" >> $GITHUB_ENV
+    
     - name: 打包镜像文件
       if: ${{ env.compile_status }} == 'success' && !cancelled()
       uses: unifreq/openwrt_packit@master
