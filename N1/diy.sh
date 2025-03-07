@@ -64,8 +64,8 @@ rm -rf feeds/luci/applications/luci-app-openclash
 
 # passwall
 rm -rf feeds/luci/applications/luci-app-passwall
-git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
-git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall-packages
+git clone https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
+#git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall-packages
 
 # mosdns
 # drop mosdns and v2ray-geodata packages that come with the source
