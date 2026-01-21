@@ -102,8 +102,9 @@ jobs:
          [llvm]
          download-ci-llvm = false
          EOF
-         cp bootstrap.toml ./
-         rm -rf dl/rust* build_dir/*/host/rustc-* staging_dir/*/stamp/.rust*        
+         sed -i '1i change-id = "ignore"' bootstrap.toml
+         rm -rf dl/rust* build_dir/*/host/rustc-* staging_dir/*/stamp/.rust* 2>/dev/null || true
+         echo "bootstrap.toml 已创建，download-ci-llvm=false"      
         
     - name: 加载自定义配置
       run: |
