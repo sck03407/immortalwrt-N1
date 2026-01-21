@@ -94,6 +94,15 @@ jobs:
         $GITHUB_WORKSPACE/$DIY_SH
         ./scripts/feeds update -a
         ./scripts/feeds install -a
+    - name: 修复 Rust host 构建（禁用 download-ci-llvm）
+      run: |
+         cd openwrt
+         cat <<EOF > bootstrap.toml
+         [llvm]
+         download-ci-llvm = false
+         EOF
+         cp bootstrap.toml ./
+         rm -rf dl/rust* build_dir/*/host/rustc-* staging_dir/*/stamp/.rust*        
         
     - name: 加载自定义配置
       run: |
