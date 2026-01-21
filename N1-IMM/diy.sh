@@ -45,7 +45,7 @@ sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generat
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
 rm -rf feeds/luci/applications/luci-app-passwall
-# rm -rf feeds/luci/applications/luci-app-mihomo
+rm -rf feeds/luci/applications/luci-app-nikki
 
 # 修改默认主题
 #sed -i 's/luci-theme-design/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
