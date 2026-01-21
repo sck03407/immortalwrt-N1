@@ -16,7 +16,7 @@ function git_sparse_clone() {
 # Add packages
 git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
 git clone --depth 1 https://github.com/ophub/luci-app-amlogic package/amlogic
-git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
+#git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki package/luci-app-nikki
 
@@ -44,7 +44,7 @@ sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generat
 # 清理软件包
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/applications/luci-app-argon-config
-rm -rf feeds/luci/applications/luci-app-passwall
+#rm -rf feeds/luci/applications/luci-app-passwall
 rm -rf feeds/luci/applications/luci-app-nikki
 
 # 修改默认主题
@@ -55,8 +55,9 @@ rm -rf feeds/luci/applications/luci-app-nikki
 #sed -i 's/ImmortalWrt/OpenWrt/g' package/base-files/files/bin/config_generate
 
 # mosdns
-find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
-find ./ | grep Makefile | grep mosdns | xargs rm -f
+#find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
+#find ./ | grep Makefile | grep mosdns | xargs rm -f
+rm -f $(find feeds/packages -name Makefile | grep -E 'v2ray-geodata|mosdns')
 git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
 git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
 
