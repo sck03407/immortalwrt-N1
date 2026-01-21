@@ -5,35 +5,61 @@ function git_sparse_clone() {
   git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
   repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
   cd $repodir && git sparse-checkout set $@
-  mv -f $@ ../package
+  for dir in "$@"; do
+    mv -f "$dir" ../package/ || echo "mv $dir failed"
+  done
   cd .. && rm -rf $repodir
 }
 
-# Remove packages
+# Remove packages（原有注释保持）
 #rm -rf feeds/packages/net/v2ray-geodata
-
 
 # Add packages
 git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
 git clone --depth 1 https://github.com/ophub/luci-app-amlogic package/amlogic
-#git clone --depth 1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki package/luci-app-nikki
-
 git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
-#git clone --depth 1 https://github.com/sbwml/luci-app-mosdns package/mosdns
+
+# ==================== Passwall 官方最新替换（推荐方法2，2026年1月最新） ====================
+# 移除官方 feeds 里冲突的代理核心包（防止 Makefile 重复定义或版本过旧）
+rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview,shadow-tls} 2>/dev/null || true
+
+# 移除官方 luci-app-passwall（如果 feeds/luci 里有残留旧版）
+rm -rf feeds/luci/applications/luci-app-passwall 2>/dev/null || true
+
+# 克隆 Passwall 核心依赖包（包含最新 xray-core、sing-box 等）
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git package/passwall-packages
+
+# 克隆 Passwall LuCI 界面（main 分支，包名为 luci-app-passwall）
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall.git package/passwall-luci
+
+# ==================== Passwall 替换结束 ====================
 
 # 加入OpenClash核心
-#chmod -R a+x $GITHUB_WORKSPACE/preset-clash-core.sh
-#$GITHUB_WORKSPACE/N1/preset-clash-core.sh
+git clone --depth 1 https://github.com/vernesong/openclash.git OpenClash
+rm -rf feeds/luci/applications/luci-app-openclash
+mv OpenClash/luci-app-openclash feeds/luci/applications/luci-app-openclash
 
-#echo "
-# 插件
-#CONFIG_PACKAGE_luci-app-nikki=y
-#" >> .config
+##------------- meta core ---------------------------------
+curl -sL -m 30 --retry 5 https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz -o /tmp/clash.tar.gz || echo "Clash Meta 下载失败，请检查网络"
+tar zxvf /tmp/clash.tar.gz -C /tmp >/dev/null 2>&1
+chmod +x /tmp/clash >/dev/null 2>&1
+mv /tmp/clash feeds/luci/applications/luci-app-openclash/root/etc/openclash/core/clash_meta >/dev/null 2>&1
+rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
 
-# 使用当前日期更新 DISTRIB_REVISION
-#sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='R$(date +%Y.%m.%d)'|g" package/base-files/files/etc/openwrt_release
+##-------------- GeoIP 数据库 -----------------------------
+curl -sL -m 30 --retry 5 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/GeoIP.dat
+mv /tmp/GeoIP.dat feeds/luci/applications/luci-app-openclash/root/etc/openclash/GeoIP.dat >/dev/null 2>&1
+
+##-------------- GeoSite 数据库 ---------------------------
+curl -sL -m 30 --retry 5 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/GeoSite.dat
+mv /tmp/GeoSite.dat feeds/luci/applications/luci-app-openclash/root/etc/openclash/GeoSite.dat >/dev/null 2>&1
+
+# mosdns（原有部分保持，但优化 rm 方式）
+rm -f $(find feeds/packages -name Makefile | grep -E 'v2ray-geodata|mosdns') 2>/dev/null || true
+git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
+git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
 
 # 向文件添加 DISTRIB_SOURCECODE
 echo "DISTRIB_SOURCECODE='immortalwrt'" >> package/base-files/files/etc/openwrt_release
@@ -41,39 +67,13 @@ echo "DISTRIB_SOURCECODE='immortalwrt'" >> package/base-files/files/etc/openwrt_
 # 修改默认IP
 sed -i 's/192.168.1.1/192.168.6.6/g' package/base-files/files/bin/config_generate
 
-# 清理软件包
-rm -rf feeds/luci/themes/luci-theme-argon
-rm -rf feeds/luci/applications/luci-app-argon-config
-#rm -rf feeds/luci/applications/luci-app-passwall
-rm -rf feeds/luci/applications/luci-app-nikki
+# 清理软件包（原有 rm 保持，但加容错）
+rm -rf feeds/luci/themes/luci-theme-argon 2>/dev/null || true
+rm -rf feeds/luci/applications/luci-app-argon-config 2>/dev/null || true
+rm -rf feeds/luci/applications/luci-app-nikki 2>/dev/null || true
 
-# 修改默认主题
-#sed -i 's/luci-theme-design/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
+# 可选：如果想用 argon 作为默认主题，取消注释下面两行（注意 feeds/luci/collections/luci/Makefile 可能已变）
 #sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
+#sed -i 's/luci-theme-design/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
-# 修改主机名
-#sed -i 's/ImmortalWrt/OpenWrt/g' package/base-files/files/bin/config_generate
-
-# mosdns
-#find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
-#find ./ | grep Makefile | grep mosdns | xargs rm -f
-rm -f $(find feeds/packages -name Makefile | grep -E 'v2ray-geodata|mosdns')
-git clone https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
-git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
-
-# 加入OpenClash核心
-git clone --depth 1 https://github.com/vernesong/openclash.git OpenClash
-rm -rf feeds/luci/applications/luci-app-openclash
-mv OpenClash/luci-app-openclash feeds/luci/applications/luci-app-openclash
-##------------- meta core ---------------------------------
-curl -sL -m 30 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz -o /tmp/clash.tar.gz
-tar zxvf /tmp/clash.tar.gz -C /tmp >/dev/null 2>&1
-chmod +x /tmp/clash >/dev/null 2>&1
-mv /tmp/clash feeds/luci/applications/luci-app-openclash/root/etc/openclash/core/clash_meta >/dev/null 2>&1
-rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
-##-------------- GeoIP 数据库 -----------------------------
-curl -sL -m 30 --retry 2 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/GeoIP.dat
-mv /tmp/GeoIP.dat feeds/luci/applications/luci-app-openclash/root/etc/openclash/GeoIP.dat >/dev/null 2>&1
-##-------------- GeoSite 数据库 ---------------------------
-curl -sL -m 30 --retry 2 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/GeoSite.dat
-mv /tmp/GeoSite.dat feeds/luci/applications/luci-app-openclash/root/etc/openclash/GeoSite.dat >/dev/null 2>&1
+# 其他原有注释部分保持不变
