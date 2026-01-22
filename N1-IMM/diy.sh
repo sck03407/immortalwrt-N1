@@ -22,37 +22,39 @@ rm -rf feeds/packages/lang/ruby 2>/dev/null || true
 rm -rf feeds/packages/net/aria2 feeds/packages/net/ariang feeds/luci/applications/luci-app-aria2 2>/dev/null || true
 
 # Python 处理（简化：删除官方，避免 WARNING）
-rm -rf feeds/packages/lang/python 2>/dev/null || true
-echo "官方 python 已删除，避免相关 WARNING"
+#rm -rf feeds/packages/lang/python 2>/dev/null || true
+#echo "官方 python 已删除，避免相关 WARNING"
 
 # ==================== shadowsocks-libev / ssr-libev 修复覆盖（别人方案核心） ====================
 
 # 先 clone sbwml 的修复版到本地 ./package/
-git clone --depth=1 https://github.com/sbwml/shadowsocks-libev.git ./package/shadowsocks-libev
-git clone --depth=1 https://github.com/sbwml/shadowsocksr-libev.git ./package/shadowsocksr-libev
+# git clone --depth=1 https://github.com/sbwml/shadowsocks-libev.git ./package/shadowsocks-libev
+# git clone --depth=1 https://github.com/sbwml/shadowsocksr-libev.git ./package/shadowsocksr-libev
 
 # 覆盖官方 feeds 中的 libev/ssr
-rm -rf feeds/packages/net/shadowsocks-libev 2>/dev/null || true
-cp -rf ./package/shadowsocks-libev feeds/packages/net/
+#rm -rf feeds/packages/net/shadowsocks-libev 2>/dev/null || true
+#cp -rf ./package/shadowsocks-libev feeds/packages/net/
 
-rm -rf feeds/packages/net/shadowsocksr-libev 2>/dev/null || true
-cp -rf ./package/shadowsocksr-libev feeds/packages/net/
-
-# 删除 Passwall 自带的旧 ssr（防止重复定义）
-rm -rf package/passwall-luci/shadowsocksr-libev 2>/dev/null || true
-
-echo "已用 sbwml 修复版覆盖 shadowsocks-libev / ssr-libev"
+#rm -rf feeds/packages/net/shadowsocksr-libev 2>/dev/null || true
+#cp -rf ./package/shadowsocksr-libev feeds/packages/net/
 
 # ==================== Passwall 官方替换（保留 shadowsocks-rust / hysteria） ====================
+echo "开始 passwall..."
+# 创建临时 clone 目录（避免污染 package/）
+mkdir -p temp_clone
+cd temp_clone || exit 1
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall.git passwall
 
-rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,ipt2socks,microsocks,naiveproxy,simple-obfs,tcping,trojan-plus,v2ray-plugin,xray-plugin,geoview,shadow-tls} 2>/dev/null || true
+# ==================== 覆盖 feeds/luci/applications ====================
+echo "覆盖 luci-app-amlogic 和 luci-app-passwall..."
+cd .. || exit 1  # 回到 openwrt 根目录
+
 rm -rf feeds/luci/applications/luci-app-passwall 2>/dev/null || true
+cp -rf temp_clone/passwall/luci-app-passwall feeds/luci/applications/
 
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git package/passwall-packages
-git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall.git package/passwall-luci
-
-# 注意：这里不 rm shadowsocks-rust / hysteria，保留它们！
-echo "Passwall 已替换，保留 shadowsocks-rust 和 hysteria"
+# 清理临时目录
+rm -rf temp_clone
+echo "已完成包覆盖，临时 clone 目录已清理"
 
 # ==================== Add packages ====================
 
