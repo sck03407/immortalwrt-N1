@@ -69,11 +69,10 @@ rm -rf feeds/luci/applications/luci-app-turboacc 2>/dev/null || true
 rm -rf feeds/packages/lang/ruby 2>/dev/null || true
 rm -rf feeds/packages/net/aria2 feeds/packages/net/ariang feeds/luci/luci-app-aria2 2>/dev/null || true
 
-# ==================== Python 处理（简化版，避免旧版兼容问题） ====================
+# ==================== Python 处理（旧版替换，避免旧版兼容问题） ====================
 rm -rf feeds/packages/lang/python 2>/dev/null || true
 echo "官方 python 包已删除，避免 setuptools/host 等 WARNING（如果需要 python，请在 menuconfig 手动选）"
-# 如果以后需要 python，可取消注释下面两行，用 merge_package 替换
-# merge_package master https://github.com/rmoyulong/old_coolsnowwolf_packages feeds/packages/lang lang/python
+merge_package master https://github.com/rmoyulong/old_coolsnowwolf_packages feeds/packages/lang lang/python
 # ==================== Python 处理结束 ====================
 
 # Passwall 里的旧核心子模块（配合 Passwall 替换）
