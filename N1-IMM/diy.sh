@@ -11,10 +11,43 @@ function git_sparse_clone() {
   cd .. && rm -rf $repodir
 }
 
-# Remove packages（原有注释保持）
-#rm -rf feeds/packages/net/v2ray-geodata
+# ==================== 解决常见编译冲突 & 覆盖关键依赖 ====================
+# 删除 Rust（已解决 LLVM 404）
+rm -rf feeds/packages/lang/rust 2>/dev/null || true
 
-# Add packages
+# golang 用 sbwml 最新版
+rm -rf feeds/packages/lang/golang 2>/dev/null || true
+git clone --depth=1 https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/lang/golang
+
+# 删除不必要的/冲突包
+rm -rf feeds/packages/net/homeproxy feeds/luci/applications/luci-app-homeproxy 2>/dev/null || true
+rm -rf feeds/luci/applications/luci-app-turboacc 2>/dev/null || true
+rm -rf feeds/packages/lang/ruby 2>/dev/null || true
+rm -rf feeds/packages/net/aria2 feeds/packages/net/ariang feeds/luci/luci-app-aria2 2>/dev/null || true
+
+# ==================== Python 替换（解决 setuptools/host 不存在、zope WARNING 等） ====================
+# 加载公用函数（merge_package 等）
+[ -f $GITHUB_WORKSPACE/update_before/functions.sh ] && source $GITHUB_WORKSPACE/update_before/functions.sh || echo "Warning: functions.sh not found, skip python merge"
+
+cd openwrt || exit 1
+
+# 删除官方 python 包（包括 python3、setuptools、zope 等）
+rm -rf feeds/packages/lang/python 2>/dev/null || true
+
+# 从 rmoyulong/old_coolsnowwolf_packages 合并 python 包（旧版修复）
+if type merge_package >/dev/null 2>&1; then
+  merge_package master https://github.com/rmoyulong/old_coolsnowwolf_packages feeds/packages/lang lang/python
+  echo "Python 包已从 old_coolsnowwolf_packages 合并"
+else
+  echo "merge_package 函数未定义，跳过 python 替换。请确认 functions.sh 已加载。"
+fi
+
+# ==================== Python 替换结束 ====================
+
+# Passwall 里的旧核心子模块（已配合 Passwall 替换）
+rm -rf package/passwall-luci/shadowsocks-rust package/passwall-luci/hysteria 2>/dev/null || true
+
+# Add packages（原有部分）
 git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
 git clone --depth 1 https://github.com/ophub/luci-app-amlogic package/amlogic
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
