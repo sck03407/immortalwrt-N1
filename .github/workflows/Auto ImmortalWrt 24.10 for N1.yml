@@ -95,17 +95,6 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-    - name: 修复 Rust host 构建（禁用 download-ci-llvm）
-      run: |
-         cd openwrt
-         cat <<EOF > bootstrap.toml
-         [llvm]
-         download-ci-llvm = false
-         EOF
-         sed -i '1i change-id = "ignore"' bootstrap.toml
-         rm -rf dl/rust* build_dir/*/host/rustc-* staging_dir/*/stamp/.rust* 2>/dev/null || true
-         echo "bootstrap.toml 已创建，download-ci-llvm=false"      
-        
     - name: 加载自定义配置
       run: |
         [ -e $FILES ] && mv $FILES openwrt/files
