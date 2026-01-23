@@ -1,118 +1,78 @@
-!/bin/bash
+#!/bin/bash
 # =====================================================================
 # diy.sh - ImmortalWrt openwrt-24.10 分支 N1 自定义编译脚本
-# 包含 Passwall 官方替换、OpenClash、mosdns v5、argon 主题等
+# 已修复重复 clone、路径问题、保留必要覆盖
 # =====================================================================
 
-# ==================== 内嵌 merge_package 函数（避免外部依赖） ====================
+set -e  # 出错立即退出
+
+echo "diy.sh 开始执行，当前目录: $PWD"
+
+# 切换到 openwrt 目录（最重要！）
+cd /workdir/openwrt || { echo "错误：/workdir/openwrt 不存在"; exit 1; }
+echo "已切换到 openwrt 目录: $PWD"
+
+# ==================== 内嵌 merge_package 函数 ====================
 merge_package() {
-    # 用法: merge_package <branch> <repo_url> <target_dir> <subpath1> [subpath2 ...]
     if [[ $# -lt 3 ]]; then
-        echo "Error: merge_package 需要至少 3 个参数: branch repo_url target_dir [subdirs...]" >&2
+        echo "Error: merge_package 需要至少 3 个参数" >&2
         return 1
     fi
-
-    local branch="$1"
-    local repo_url="$2"
-    local target_dir="$3"
+    local branch="$1" repo_url="$2" target_dir="$3"
     shift 3
-
     local rootdir="$PWD"
-    local tmpdir
-    tmpdir=$(mktemp -d) || { echo "创建临时目录失败"; return 1; }
+    local tmpdir=$(mktemp -d) || exit 1
     trap 'rm -rf "$tmpdir"' EXIT
-
-    echo "正在从 $repo_url sparse clone $branch 分支的 $@ 到 $target_dir"
-
-    git clone -b "$branch" --depth 1 --filter=blob:none --sparse "$repo_url" "$tmpdir" || { echo "git clone 失败"; return 1; }
-    cd "$tmpdir" || { echo "进入临时目录失败"; return 1; }
+    echo "merge_package: 从 $repo_url clone $branch 到 $target_dir"
+    git clone -b "$branch" --depth 1 --filter=blob:none --sparse "$repo_url" "$tmpdir"
+    cd "$tmpdir"
     git sparse-checkout init --cone
-    git sparse-checkout set "$@" || { echo "sparse-checkout set 失败"; return 1; }
-
+    git sparse-checkout set "$@"
     for folder in "$@"; do
-        if [ -d "$folder" ]; then
-            mv -f "$folder" "$rootdir/$target_dir/" || echo "移动 $folder 失败"
-        else
-            echo "警告: $folder 不存在，跳过"
-        fi
+        [ -d "$folder" ] && mv -f "$folder" "$rootdir/$target_dir/" || echo "警告: $folder 不存在"
     done
-
-    cd "$rootdir" || return 1
+    cd "$rootdir"
     echo "merge_package 完成"
 }
-# ==================== 内嵌函数结束 ====================
 
-# Git稀疏克隆，只克隆指定目录到 ./package
-function git_sparse_clone() {
-  branch="$1" repourl="$2" && shift 2
-  git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
-  repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
-  cd $repodir && git sparse-checkout set $@
-  for dir in "$@"; do
-    mv -f "$dir" ../package/ || echo "mv $dir failed"
-  done
-  cd .. && rm -rf $repodir
-}
-
-# ==================== 解决常见编译冲突 & 覆盖关键依赖 ====================
-
-# 删除官方 Rust（避免 LLVM CI 404，但保留 Passwall 中的 shadowsocks-rust/hysteria）
+# ==================== 解决常见冲突 ====================
 rm -rf feeds/packages/lang/rust 2>/dev/null || true
-echo "已删除官方 rust 包，避免全局 Rust 构建错误"
+echo "已删除 rust 包，避免 Rust 构建错误"
 
-# golang 用 sbwml 最新版
 rm -rf feeds/packages/lang/golang 2>/dev/null || true
 git clone --depth=1 https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/lang/golang
 echo "已覆盖 golang 为 sbwml 26.x"
 
-# 删除不必要的包
+# 删除不必要包
 rm -rf feeds/packages/net/homeproxy feeds/luci/applications/luci-app-homeproxy 2>/dev/null || true
 rm -rf feeds/luci/applications/luci-app-turboacc 2>/dev/null || true
 rm -rf feeds/packages/lang/ruby 2>/dev/null || true
 rm -rf feeds/packages/net/aria2 feeds/packages/net/ariang feeds/luci/applications/luci-app-aria2 2>/dev/null || true
 
-# ==================== Python 处理（简化版，避免旧版兼容问题） ====================
-rm -rf feeds/packages/lang/python 2>/dev/null || true
-# echo "官方 python 包已删除，避免 setuptools/host 等 WARNING（如果需要 python，请在 menuconfig 手动选）"
-# 如果以后需要 python，可取消注释下面两行，用 merge_package 替换
-merge_package master https://github.com/rmoyulong/old_coolsnowwolf_packages feeds/packages/lang lang/python
-# ==================== Python 处理结束 ====================
+# ==================== Python 处理（只删除问题子包，保留核心） ====================
+rm -rf feeds/packages/lang/python-zope* feeds/packages/lang/python-setuptools* feeds/packages/lang/python-hatch* 2>/dev/null || true
+echo "已删除 python 的问题子包，避免 WARNING，但保留 python3 核心（修复 boost/python3 依赖）"
 
-# ==================== shadowsocks-libev / ssr-libev 修复覆盖（别人方案核心） ====================
+# ==================== amlogic + passwall（修复重复，只用一种方式） ====================
+echo "开始 clone amlogic 和 passwall..."
 
-# 先 clone sbwml 的修复版到本地 ./package/
-# git clone --depth=1 https://github.com/sbwml/shadowsocks-libev.git ./package/shadowsocks-libev
-# git clone --depth=1 https://github.com/sbwml/shadowsocksr-libev.git ./package/shadowsocksr-libev
-
-# 覆盖官方 feeds 中的 libev/ssr
-#rm -rf feeds/packages/net/shadowsocks-libev 2>/dev/null || true
-#cp -rf ./package/shadowsocks-libev feeds/packages/net/
-
-#rm -rf feeds/packages/net/shadowsocksr-libev 2>/dev/null || true
-#cp -rf ./package/shadowsocksr-libev feeds/packages/net/
-
-# ==================== Passwall 官方替换（保留 shadowsocks-rust / hysteria） ====================
-echo "开始 passwall..."
-# 创建临时 clone 目录（避免污染 package/）
 mkdir -p temp_clone
-cd temp_clone || exit 1
+cd temp_clone
+
+git clone --depth=1 https://github.com/ophub/luci-app-amlogic.git amlogic
 git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall.git passwall
 
-# ==================== 覆盖 feeds/luci/applications ====================
-echo "覆盖 luci-app-amlogic 和 luci-app-passwall..."
-cd .. || exit 1  # 回到 openwrt 根目录
+cd ..
 
 rm -rf feeds/luci/applications/luci-app-passwall 2>/dev/null || true
+cp -rf temp_clone/amlogic/luci-app-amlogic feeds/luci/applications/
 cp -rf temp_clone/passwall/luci-app-passwall feeds/luci/applications/
 
-# 清理临时目录
 rm -rf temp_clone
-echo "已完成包覆盖，临时 clone 目录已清理"
+echo "amlogic 和 passwall 已覆盖完成"
 
-# ==================== Add packages ====================
-
+# ==================== 其他包 ====================
 git clone --depth 1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
-git clone --depth 1 https://github.com/ophub/luci-app-amlogic package/amlogic
 git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki package/luci-app-nikki
 git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky
