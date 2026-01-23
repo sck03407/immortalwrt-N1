@@ -1,17 +1,15 @@
 name: Build ImmortalWrt 24.10 for N1
-
 on:
   workflow_dispatch:
-   inputs:
+    inputs:
       ssh:
         description: 'SSH connection to Actions'
         required: false
-        default: 'false'  
-
+        default: 'false'
   repository_dispatch:
     types:
       - N1-ImmortalWrt
-    
+   
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   REPO_BRANCH: openwrt-24.10
@@ -21,11 +19,9 @@ env:
   TZ: Asia/Shanghai
   GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
 
-
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     steps:
     - name: 检查服务器配置
       run: |
@@ -43,7 +39,7 @@ jobs:
     - name: 检出代码
       uses: actions/checkout@main
 
-    - name: 清理空间
+    - name: 清理空间（系统分区）
       uses: jlumbroso/free-disk-space@main
       with:
         tool-cache: false
@@ -69,57 +65,81 @@ jobs:
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
-        sudo mkdir -p /workdir
-        sudo chown $USER:$GROUPS /workdir
-    
-    - name: 克隆源代码
-      working-directory: /workdir
+        sudo mkdir -p /workdir /mnt/openwrt
+        sudo chown -R $USER:$GROUPS /workdir /mnt/openwrt
+
+    - name: 克隆源代码（放到大容量 /mnt 分区）
       run: |
-        git clone $REPO_URL -b $REPO_BRANCH --single-branch --depth=1 openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        # 清理旧 /mnt/openwrt（防止多次运行积累）
+        sudo rm -rf /mnt/openwrt/* 2>/dev/null || true
         
+        # 克隆到 /mnt/openwrt
+        git clone $REPO_URL -b $REPO_BRANCH --single-branch --depth=1 /mnt/openwrt
+        
+        # 软链接，让后续步骤仍用 /workdir/openwrt
+        sudo rm -f /workdir/openwrt 2>/dev/null || true
+        sudo ln -sf /mnt/openwrt /workdir/openwrt
+        
+        # 检查空间
+        df -h /mnt /workdir/openwrt
+        ls -ld /workdir/openwrt
+
     - name: 缓存编译
       uses: stupidloud/cachewrtbuild@main
       with:
         ccache: 'true'
         mixkey: N1-${{ env.REPO_BRANCH }}
-        prefix: ${{ github.workspace }}/openwrt
-        
+        prefix: /mnt/openwrt   # 改成 /mnt
+
     - name: 更新并安装feeds
       run: |
         chmod +x $DIY_SH
-        cd openwrt
+        cd /workdir/openwrt
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         $GITHUB_WORKSPACE/$DIY_SH
         ./scripts/feeds update -a
         ./scripts/feeds install -a
-        
+
     - name: 加载自定义配置
       run: |
-        [ -e $FILES ] && mv $FILES openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        [ -e $FILES ] && mv $FILES /workdir/openwrt/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE /workdir/openwrt/.config
 
     - name: 下载软件包
-      working-directory: ./openwrt
+      working-directory: /workdir/openwrt
       run: |
         make defconfig
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-        
+
     - name: 编译固件
       run: |
-        chmod -R 755 openwrt      
-        cd openwrt
+        # 清理 /mnt/openwrt 的旧构建文件
+        rm -rf /mnt/openwrt/dl/* \
+               /mnt/openwrt/build_dir/* \
+               /mnt/openwrt/staging_dir/* \
+               /mnt/openwrt/tmp/* \
+               /mnt/openwrt/logs/* 2>/dev/null || true
+        
+        df -h /mnt /workdir/openwrt
+        
+        chmod -R 755 /workdir/openwrt
+        cd /workdir/openwrt
         make -j$(nproc) || make -j$((`nproc`/2)) || make -j1 V=s
-        echo "compile_status=success" >> $GITHUB_ENV
+        if [ $? -eq 0 ]; then
+          echo "build_success=true" >> $GITHUB_ENV
+        else
+          echo "build_success=false" >> $GITHUB_ENV
+          exit 1
+        fi
 
     - name: 打包镜像文件
       if: ${{ env.build_success == 'true' && !cancelled() }}
       uses: unifreq/openwrt_packit@master
       env:
-        OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
+        OPENWRT_ARMVIRT: /mnt/openwrt/bin/targets/*/*/*.tar.gz   # 改成 /mnt
         KERNEL_REPO_URL: breakingbadboy/OpenWrt
         KERNEL_VERSION_NAME: 6.6.y_6.12.y
         KERNEL_AUTO_LATEST: true
@@ -138,17 +158,13 @@ jobs:
         touch release.txt
         echo "
         🍁 注意事项：首次使用建议全新刷写
-          
+         
         💻 适用机型: 斐讯N1
-
         🌐 管理地址: 192.168.6.6
-
         👤 用户名: root
-
-        🔒 密码: password 
-        
+        🔒 密码: password
         " >> release.txt
-        echo "tag_status=success" >> $GITHUB_ENV
+        echo "build_success=true" >> $GITHUB_ENV   # 标签生成成功，继续标记
 
     - name: 发布固件到 Releases
       uses: softprops/action-gh-release@v2
@@ -171,4 +187,4 @@ jobs:
       if: ${{ env.build_success == 'true' && !cancelled() }}
       with:
         keep_latest: 5
-        delete_tags : true
+        delete_tags: true
