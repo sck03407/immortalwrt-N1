@@ -3,6 +3,8 @@
 # diy.sh - ImmortalWrt openwrt-24.10 分支 N1 自定义编译脚本
 # 已修复重复 clone、路径问题、保留必要覆盖
 # =====================================================================
+df -h /workdir
+du -sh /workdir/openwrt/dl /workdir/openwrt/build_dir /workdir/openwrt/tmp 2>/dev/null || true
 
 set -e  # 出错立即退出
 
