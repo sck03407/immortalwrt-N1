@@ -78,17 +78,51 @@ git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome packag
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki package/luci-app-nikki || echo "nikki clone 失败，继续"
 git clone --depth=1 https://github.com/gdy666/luci-app-lucky.git package/lucky || echo "lucky clone 失败，继续"
 
-# ==================== OpenClash、mosdns 等 ====================
-git clone --depth 1 https://github.com/vernesong/openclash.git OpenClash || echo "openclash clone 失败，继续"
-rm -rf feeds/luci/applications/luci-app-openclash
+# ==================== OpenClash 核心 ====================
+echo "开始 clone OpenClash（重试 + 多镜像）..."
+
+clone_success=false
+
+# 优先 GitHub 原仓库，重试 3 次
+for attempt in {1..3}; do
+    echo "GitHub 原仓库 clone 尝试 $attempt/3..."
+    if git clone --depth 1 https://github.com/vernesong/openclash.git OpenClash; then
+        clone_success=true
+        break
+    fi
+    echo "GitHub clone 失败，重试中..."
+    sleep 8  # 稍长一点，避开限流窗口
+done
+
+# 如果失败，换 Gitee 镜像（国内 Actions 访问更快）
+if [ "$clone_success" = false ]; then
+    echo "GitHub clone 失败 3 次，切换 Gitee 镜像..."
+    git clone --depth 1 https://gitee.com/mirrors/openclash.git OpenClash || { echo "所有镜像失败，退出"; exit 1; }
+    clone_success=true
+fi
+
+# 如果还是不行，换社区 fork（备用）
+if [ "$clone_success" = false ]; then
+    echo "Gitee 也失败，尝试社区 fork..."
+    git clone --depth 1 https://github.com/JACK-THINK/openclash.git OpenClash || exit 1
+fi
+
+rm -rf feeds/luci/applications/luci-app-openclash 2>/dev/null || true
 mv OpenClash/luci-app-openclash feeds/luci/applications/luci-app-openclash
 
-curl -sL -m 30 --retry 5 https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz -o /tmp/clash.tar.gz || echo "Clash Meta 下载失败"
+# core / Geo 下载也加重试（同理）
+for i in {1..3}; do
+    curl -sL -m 30 --retry 5 https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz -o /tmp/clash.tar.gz && break
+    echo "Clash Meta 下载失败，重试 $i/3..."
+    sleep 5
+done || echo "Clash Meta 下载失败，继续 Geo"
+
 tar zxvf /tmp/clash.tar.gz -C /tmp >/dev/null 2>&1
 chmod +x /tmp/clash >/dev/null 2>&1
 mv /tmp/clash feeds/luci/applications/luci-app-openclash/root/etc/openclash/core/clash_meta >/dev/null 2>&1
 rm -rf /tmp/clash.tar.gz /tmp/clash >/dev/null 2>&1
 
+# GeoIP & GeoSite（加重试）
 curl -sL -m 30 --retry 5 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/GeoIP.dat || echo "GeoIP 下载失败"
 mv /tmp/GeoIP.dat feeds/luci/applications/luci-app-openclash/root/etc/openclash/GeoIP.dat >/dev/null 2>&1
 
