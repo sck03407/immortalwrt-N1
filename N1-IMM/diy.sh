@@ -1,8 +1,58 @@
-#!/bin/bash
+!/bin/bash
 # =====================================================================
-# diy.sh - ImmortalWrt openwrt-24.10 N1 单文件编译脚本
-# 保留 shadowsocks-rust 和 hysteria，修复 libev/ssr 编译错误
+# diy.sh - ImmortalWrt openwrt-24.10 分支 N1 自定义编译脚本
+# 包含 Passwall 官方替换、OpenClash、mosdns v5、argon 主题等
 # =====================================================================
+
+# ==================== 内嵌 merge_package 函数（避免外部依赖） ====================
+merge_package() {
+    # 用法: merge_package <branch> <repo_url> <target_dir> <subpath1> [subpath2 ...]
+    if [[ $# -lt 3 ]]; then
+        echo "Error: merge_package 需要至少 3 个参数: branch repo_url target_dir [subdirs...]" >&2
+        return 1
+    fi
+
+    local branch="$1"
+    local repo_url="$2"
+    local target_dir="$3"
+    shift 3
+
+    local rootdir="$PWD"
+    local tmpdir
+    tmpdir=$(mktemp -d) || { echo "创建临时目录失败"; return 1; }
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    echo "正在从 $repo_url sparse clone $branch 分支的 $@ 到 $target_dir"
+
+    git clone -b "$branch" --depth 1 --filter=blob:none --sparse "$repo_url" "$tmpdir" || { echo "git clone 失败"; return 1; }
+    cd "$tmpdir" || { echo "进入临时目录失败"; return 1; }
+    git sparse-checkout init --cone
+    git sparse-checkout set "$@" || { echo "sparse-checkout set 失败"; return 1; }
+
+    for folder in "$@"; do
+        if [ -d "$folder" ]; then
+            mv -f "$folder" "$rootdir/$target_dir/" || echo "移动 $folder 失败"
+        else
+            echo "警告: $folder 不存在，跳过"
+        fi
+    done
+
+    cd "$rootdir" || return 1
+    echo "merge_package 完成"
+}
+# ==================== 内嵌函数结束 ====================
+
+# Git稀疏克隆，只克隆指定目录到 ./package
+function git_sparse_clone() {
+  branch="$1" repourl="$2" && shift 2
+  git clone --depth=1 -b $branch --single-branch --filter=blob:none --sparse $repourl
+  repodir=$(echo $repourl | awk -F '/' '{print $(NF)}')
+  cd $repodir && git sparse-checkout set $@
+  for dir in "$@"; do
+    mv -f "$dir" ../package/ || echo "mv $dir failed"
+  done
+  cd .. && rm -rf $repodir
+}
 
 # ==================== 解决常见编译冲突 & 覆盖关键依赖 ====================
 
@@ -21,9 +71,12 @@ rm -rf feeds/luci/applications/luci-app-turboacc 2>/dev/null || true
 rm -rf feeds/packages/lang/ruby 2>/dev/null || true
 rm -rf feeds/packages/net/aria2 feeds/packages/net/ariang feeds/luci/applications/luci-app-aria2 2>/dev/null || true
 
-# Python 处理（简化：删除官方，避免 WARNING）
-#rm -rf feeds/packages/lang/python 2>/dev/null || true
-#echo "官方 python 已删除，避免相关 WARNING"
+# ==================== Python 处理（简化版，避免旧版兼容问题） ====================
+rm -rf feeds/packages/lang/python 2>/dev/null || true
+# echo "官方 python 包已删除，避免 setuptools/host 等 WARNING（如果需要 python，请在 menuconfig 手动选）"
+# 如果以后需要 python，可取消注释下面两行，用 merge_package 替换
+merge_package master https://github.com/rmoyulong/old_coolsnowwolf_packages feeds/packages/lang lang/python
+# ==================== Python 处理结束 ====================
 
 # ==================== shadowsocks-libev / ssr-libev 修复覆盖（别人方案核心） ====================
 
